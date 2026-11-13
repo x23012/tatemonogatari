@@ -185,7 +185,8 @@ p { margin: 8px 0; }
 /* くわしく */
 .detail-photo { aspect-ratio: 4 / 3; border-radius: var(--radius); border: 2px solid var(--ink); }
 .detail-head { display: flex; gap: 12px; align-items: center; margin: 14px 0 6px; }
-.detail-head h2 { margin: 0; font-size: 24px; line-height: 1.6; }
+.detail-head h2 { margin: 0; padding-top: .45em; font-size: 24px; line-height: 1.5; }   /* 上のふりがなが、区分の枠にかからないように */
+.detail-head .tag { margin-bottom: 2px; }
 .alias { font-size: 14px; color: var(--ink-2); margin: 0 0 6px; }
 .catch {
   margin: 14px 0; padding: 12px 14px; border-radius: 10px;
