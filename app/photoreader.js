@@ -108,6 +108,16 @@ const PhotoReader = (() => {
       }
       if (!inN || inFill / inN < 0.86 || inComp / inN < 0.4 || inComp / inN > 0.995) { rej(`fill ${(inFill / inN).toFixed(2)} comp ${(inComp / inN).toFixed(2)}`); continue; }
       if (outN && outComp / outN > 0.2) { rej(`out ${(outComp / outN).toFixed(2)}`); continue; }
+      // 白さの基準：丸の中の白い数字は、まわりの紙と同じ白で、同じ明るさの所にある。
+      // 照明のむら（影）で紙が暗く写っても、数字と同じくらいの明るさなら紙とみなす
+      const dv = [];
+      for (let y = c.y0; y <= c.y1; y++) for (let x = c.x0; x <= c.x1; x++) {
+        const i = y * w + x;
+        if (lab[i] !== c.id && Math.hypot(x - cx, y - cy) / r < 0.8 && S[i] < 0.3) dv.push(V[i]);
+      }
+      let pv = paperV;
+      if (dv.length >= 4) { dv.sort((a, b) => b - a); pv = Math.max(0.55, Math.min(paperV, dv[Math.floor(dv.length * 0.25)] - 0.08)); }
+      const isPaper = (S, V, i) => V[i] >= pv && S[i] < 0.3;
       // まわりの輪：白い紙
       let ringN = 0, ringW = 0;
       for (let k = 0; k < 48; k++) {
@@ -218,6 +228,20 @@ const PhotoReader = (() => {
       });
     }
     return { byView, ...pickView({ byView }, 0) };
+  }
+  /** 数字は元の大きさの写真から読む（遠くから撮ってスタンプが小さく写っても、数字の形が残るように）。
+   * スタンプのまわりだけを切り出し、丸の半径が HR px になるように大きくしてから readNumber にかける */
+  const HR = 40, HS = Math.ceil(HR * 2.6);
+  const hCanvas = document.createElement('canvas'); hCanvas.width = hCanvas.height = HS;
+  const hCtx = hCanvas.getContext('2d', { willReadFrequently: true });
+  function readNumberHi(img, f, st) {
+    if (!img || !(f > 1.05)) return null;               // 元の写真が縮めた写真より大きいときだけ
+    const R = st.r * 1.3;                                // 切り出す半径（縮めた写真の座標）
+    hCtx.imageSmoothingQuality = 'high';
+    hCtx.clearRect(0, 0, HS, HS);
+    hCtx.drawImage(img, (st.cx - R) * f, (st.cy - R) * f, 2 * R * f, 2 * R * f, 0, 0, HS, HS);
+    const px = hCtx.getImageData(0, 0, HS, HS).data;
+    return readNumber(px, HS, HS, { ...st, cx: HS / 2, cy: HS / 2, r: st.r * HS / (2 * R) });
   }
   function pickView(num, k) {
     const all = num.byView[k];
@@ -412,7 +436,7 @@ const PhotoReader = (() => {
     const items = [];
     const wb = whiteBalanced(px, stamps);
     for (const st of stamps) {
-      const num = readNumber(px, w, h, st);
+      const num = readNumberHi(img, f, st) || readNumber(px, w, h, st);
       const card = findCard(px, w, h, st, table, stamps);
       let cands = identify(wb, w, h, card, st);
       // 帯の下の線の本数（元の大きさの写真から読む）で、候補を並べかえる
