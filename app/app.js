@@ -154,8 +154,8 @@ VIEWS.home = () => {
     </section>
     ${n ? `<a class="resume" href="#/route"><span style="font-size:28px">🗺️</span><span style="flex:1"><b>つくりかけのルート</b><br><span class="muted">${n}か所 ・ つづきを見る</span></span><span aria-hidden="true">›</span></a>` : ''}
     <div class="stack">
-      <a class="btn primary" href="#/scan"><span class="ico">📷</span>${R('カードをカメラで{読|よ}む')}</a>
-      <a class="btn" href="#/photo"><span class="ico">🗓️</span>${R('{写真|しゃしん}1まいで まとめて{読|よ}む')}</a>
+      <a class="btn primary" href="#/photo"><span class="ico">🗓️</span>${R('{写真|しゃしん}1まいで まとめて{読|よ}む')}</a>
+      <a class="btn" href="#/scan"><span class="ico">📷</span>${R('カードをカメラで{読|よ}む')}</a>
       <a class="btn" href="#/select"><span class="ico">🃏</span>${R('{一覧|いちらん}から{選|えら}ぶ')}</a>
       <a class="btn" href="#/saved"><span class="ico">🔖</span>${R('{保存|ほぞん}したルート')}${S.saved.length ? `（${S.saved.length}）` : ''}</a>
       <a class="btn" href="#/rules"><span class="ico">🎲</span>${R('{遊|あそ}び{方|かた}')}</a>
