@@ -242,6 +242,7 @@ VIEWS.card = id => {
     <div class="stack">
       <button class="btn ${on ? '' : 'primary'}" data-act="toggleDetail" data-id="${c.id}">${on ? R('ルートからはずす') : R('ルートに{入|い}れる')}</button>
       <a class="btn blue" href="${searchUrl(c)}" target="_blank" rel="noopener"><span class="ico">📍</span>${R('{地図|ちず}で{見|み}る')}</a>
+      ${c.heritage_url ? `<a class="btn ghost" href="${esc(c.heritage_url)}" target="_blank" rel="noopener"><span class="ico">🏛️</span>${R('{文化遺産|ぶんかいさん}オンラインで{見|み}る')}</a>` : ''}
     </div>`,
   };
 };
