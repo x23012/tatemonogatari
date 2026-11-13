@@ -728,7 +728,14 @@ function renderPhotoResult() {
   const colors = [...new Set(rows.map(r => r.color))];
   const mine = rows.map((r, i) => ({ ...r, i })).filter(r => r.color === photoState.color).sort((a, b) => a.month - b.month);
   const dupMonth = new Set(mine.filter(r => r.use).map(r => r.month).filter((m, j, a) => a.indexOf(m) !== j));
-  const dupCard = new Set(mine.filter(r => r.use).map(r => r.id).filter((m, j, a) => a.indexOf(m) !== j));
+  const dupCard = new Set(mine.filter(r => r.use && r.id !== 'warp').map(r => r.id).filter((m, j, a) => a.indexOf(m) !== j));   // ワープは2枚あってよい
+  // どこが重なっているかを書く（例：「犬山城が 3月と7月の 2つにあるよ」「5月が 犬山城と徳川美術館の 2つにあるよ」）
+  const gatsu = m => `${m}<ruby>月<rt>がつ</rt></ruby>`;
+  const cardName = id => id === 'warp' ? 'ワープ' : esc(BYID.get(id).name);
+  const dupCardMsg = [...dupCard].map(id => { const ms = mine.filter(r => r.use && r.id === id).map(r => r.month);
+    return `<b>${cardName(id)}</b>${R('が')} ${ms.map(gatsu).join('と')}${R('の')} ${ms.length}${R('つにあるよ。')}`; });
+  const dupMonthMsg = [...dupMonth].sort((a, b) => a - b).map(m => { const ids = mine.filter(r => r.use && r.month === m).map(r => r.id);
+    return `<b>${gatsu(m)}</b>${R('が')} ${ids.map(cardName).join('と')}${R('の')} ${ids.length}${R('つにあるよ。')}`; });
   const cardOptions = (r) => {
     const first = r.cands.filter(id => id !== 'warp').slice(0, 3);
     const rest = CARDS.filter(c => !first.includes(c.id)).sort((a, b) => a.name_kana.localeCompare(b.name_kana, 'ja'));
@@ -753,8 +760,8 @@ function renderPhotoResult() {
         <select class="card-sel${!r.sureCard || dupCard.has(r.id) ? ' warn' : ''}" data-i="${r.i}" aria-label="カード">${cardOptions(r)}</select>
       </li>`;
     }).join('')}</ol>
-    ${dupMonth.size ? `<p class="note">${R('{同|おな}じ{月|つき}が2つあるよ。たしかめてね。')}</p>` : ''}
-    ${dupCard.size ? `<p class="note">${R('{同|おな}じカードが2つあるよ。たしかめてね。')}</p>` : ''}
+    ${dupMonth.size ? `<p class="note">${R('{同|おな}じ{月|つき}がかさなっているよ。たしかめてね。')}<br>${dupMonthMsg.join('<br>')}</p>` : ''}
+    ${dupCard.size ? `<p class="note">${R('{同|おな}じカードがかさなっているよ。たしかめてね。')}<br>${dupCardMsg.join('<br>')}</p>` : ''}
     <button class="btn primary" data-act="photoToRoute" ${okCount ? '' : 'disabled'} style="margin-top:12px"><span class="ico">🗺️</span>${R('この{順|じゅん}でルートにする')}（${okCount}か所）</button>`;
   out.querySelectorAll('.month-sel').forEach(el => el.addEventListener('change', () => { photoState.rows[+el.dataset.i].month = +el.value; photoState.rows[+el.dataset.i].sureNum = true; renderPhotoResult(); }));
   out.querySelectorAll('.card-sel').forEach(el => el.addEventListener('change', () => { const v = el.value; photoState.rows[+el.dataset.i].id = v === 'warp' ? 'warp' : Number(v); photoState.rows[+el.dataset.i].sureCard = true; renderPhotoResult(); }));
